@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import multer from "multer";
 import { createRequire } from "module";
 import summarizeRouter from "./routes/summarize.route.js";
+import agentsRouter from "./routes/agents.route.js";
 
 dotenv.config();
 
@@ -12,9 +13,10 @@ const pdf = require("pdf-parse"); // работает с v1.1.1
 
 const app = express();
 
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 app.use("/summarize", summarizeRouter);
+app.use("/agents", agentsRouter);   // <--- новый маршрут
 
 const upload = multer();
 
