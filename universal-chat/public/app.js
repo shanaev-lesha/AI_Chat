@@ -115,6 +115,26 @@ document.getElementById("agents-btn").addEventListener("click", async (e) => {
   }
 });
 
+// voice generation
+if (document.getElementById("voice-btn")) {
+  document.getElementById("voice-btn").addEventListener("click", async () => {
+    const text = document.getElementById("voice-text").value;
+
+    const res = await fetch("/voice", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ text })
+    });
+
+    const blob = await res.blob();
+
+    const audio = document.getElementById("voice-player");
+    audio.src = URL.createObjectURL(blob);
+  });
+}
+
 document.getElementById("reset-btn").addEventListener("click", async (e) => {
   const result = document.getElementById("reset-result");
   setBusy(e.target, true);

@@ -1,14 +1,16 @@
+import dotenv from "dotenv";
+dotenv.config();
+console.log("Deepgram key:", process.env.DEEPGRAM_API_KEY);
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import multer from "multer";
 import { createRequire } from "module";
 import path from "path";
 import { fileURLToPath } from "url";
 import summarizeRouter from "./routes/summarize.route.js";
 import agentsRouter from "./routes/agents.route.js";
-
-dotenv.config();
+import voiceRouter from "./routes/voice.route.js";
 
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse"); // работает с v1.1.1
@@ -23,6 +25,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/summarize", summarizeRouter);
 app.use("/agents", agentsRouter);   // <--- новый маршрут
+app.use("/voice", voiceRouter);   // новый голосовой эндпоинт
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
