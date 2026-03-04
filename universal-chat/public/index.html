@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Universal Chat UI</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="hero">
+        <h1>Universal Chat Dashboard</h1>
+        <p>Удобный интерфейс для всех ваших API-функций</p>
+      </header>
+
+      <section class="grid">
+        <article class="card">
+          <h2>1) Загрузка PDF</h2>
+          <p>Загрузите PDF-файл в память сервера для RAG-чата.</p>
+          <label class="file-label">
+            <input id="upload-file" type="file" accept="application/pdf" />
+          </label>
+          <button id="upload-btn">Загрузить PDF</button>
+          <pre id="upload-result" class="result"></pre>
+        </article>
+
+        <article class="card">
+          <h2>2) Чат с документом</h2>
+          <p>Спросите что-то по загруженному документу и выберите модель.</p>
+          <label>
+            Сообщение
+            <textarea id="chat-message" rows="4" placeholder="Введите вопрос..."></textarea>
+          </label>
+          <label>
+            Модель (опционально)
+            <input id="chat-model" type="text" placeholder="arcee-ai/trinity-mini:free" />
+          </label>
+          <button id="chat-btn">Отправить в /chat</button>
+          <pre id="chat-result" class="result"></pre>
+        </article>
+
+        <article class="card">
+          <h2>3) Суммаризация PDF</h2>
+          <p>Укажите путь до PDF на сервере для эндпоинта <code>/summarize</code>.</p>
+          <label>
+            pdfPath
+            <input id="summarize-path" type="text" placeholder="/absolute/path/to/file.pdf" />
+          </label>
+          <button id="summarize-btn">Запустить /summarize</button>
+          <pre id="summarize-result" class="result"></pre>
+        </article>
+
+        <article class="card">
+          <h2>4) Мульти-агенты</h2>
+          <p>Запустите дискуссию нескольких агентов на заданную тему.</p>
+          <label>
+            topic
+            <input id="agents-topic" type="text" placeholder="Например: Будущее ИИ" />
+          </label>
+          <label>
+            turns
+            <input id="agents-turns" type="number" min="1" value="3" />
+          </label>
+          <button id="agents-btn">Запустить /agents</button>
+          <pre id="agents-result" class="result"></pre>
+        </article>
+
+        <article class="card full-width danger">
+          <h2>5) Сброс истории</h2>
+          <p>Очистить историю чата, накопленную в памяти сервера.</p>
+          <button id="reset-btn">Выполнить /reset</button>
+          <pre id="reset-result" class="result"></pre>
+        </article>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
