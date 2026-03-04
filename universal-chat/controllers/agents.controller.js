@@ -1,17 +1,14 @@
-import { runMultiAgentConversation } from "../services/multiAgent.service.js";
+import { runSelfImprovingDebate } from "../services/multiAgent.service.js";
 
 export async function agentsController(req, res) {
-  const { topic, turns } = req.body;
-
-  if (!topic) {
-    return res.status(400).json({ error: "Topic is required" });
-  }
+  const topic = req.body.topic || "Debate the impact of AI on society";
+  const turns = req.body.turns || 2;
 
   try {
-    const result = await runMultiAgentConversation(topic, turns || 3);
-    res.json({ conversation: result });
+    const result = await runSelfImprovingDebate(topic, turns);
+    res.json(result);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Ошибка мульти-агента" });
+    res.status(500).json({ error: "Ошибка self-improving агентов" });
   }
 }
