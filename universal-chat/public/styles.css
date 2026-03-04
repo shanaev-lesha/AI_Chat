@@ -1,0 +1,138 @@
+:root {
+  --bg: #0b1020;
+  --panel: #121936;
+  --panel-2: #1b244b;
+  --text: #e8ecff;
+  --muted: #aab5e7;
+  --accent: #6ea8fe;
+  --accent-2: #7cf0c8;
+  --danger: #ff7096;
+  --border: #2c3a75;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(circle at top left, #131c3f 0%, var(--bg) 55%);
+  color: var(--text);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.hero p {
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: linear-gradient(145deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+input,
+textarea,
+button {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+
+input,
+textarea {
+  background: #0f1531;
+  color: var(--text);
+  padding: 10px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #06112a;
+  font-weight: 700;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.danger button {
+  background: linear-gradient(90deg, #ff8fa3, var(--danger));
+}
+
+.result {
+  min-height: 64px;
+  margin: 0;
+  background: rgba(3, 8, 20, 0.7);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  color: #d7e3ff;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
