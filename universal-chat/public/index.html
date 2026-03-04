@@ -15,6 +15,13 @@
       <p>Удобный интерфейс для всех ваших API-функций</p>
     </header>
 
+    <section class="card quick-actions">
+      <h2>Быстрые действия</h2>
+      <p>Проверьте сразу все API-методы одним кликом и посмотрите детальный результат.</p>
+      <button id="smoke-btn">Проверить все эндпоинты</button>
+      <pre id="smoke-result" class="result"></pre>
+    </section>
+
     <section class="grid">
       <article class="card">
         <h2>1) Загрузка PDF</h2>
@@ -76,10 +83,11 @@
         </label>
         <button id="voice-btn">Генерировать голос (/voice)</button>
         <audio id="voice-player" controls style="width:100%; margin-top:8px;"></audio>
+        <pre id="voice-result" class="result"></pre>
       </article>
 
       <article class="card full-width danger">
-        <h2>5) Сброс истории</h2>
+        <h2>6) Сброс истории</h2>
         <p>Очистить историю чата, накопленную в памяти сервера.</p>
         <button id="reset-btn">Выполнить /reset</button>
         <pre id="reset-result" class="result"></pre>

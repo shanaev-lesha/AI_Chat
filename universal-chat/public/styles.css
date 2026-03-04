@@ -136,3 +136,7 @@ button:disabled {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.quick-actions {
+  margin-bottom: 16px;
+}

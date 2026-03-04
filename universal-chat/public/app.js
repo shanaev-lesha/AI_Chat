@@ -15,6 +15,27 @@ async function callJson(url, body) {
   return data;
 }
 
+async function callVoice(text) {
+  const res = await fetch("/voice", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+
+  if (!res.ok) {
+    let errorPayload = "Voice generation error";
+    try {
+      const data = await res.json();
+      errorPayload = pretty(data);
+    } catch {
+      errorPayload = await res.text();
+    }
+    throw new Error(errorPayload);
+  }
+
+  return res.blob();
+}
+
 function setBusy(button, isBusy) {
   button.disabled = isBusy;
   button.dataset.originalText ||= button.textContent;
@@ -117,23 +138,71 @@ document.getElementById("agents-btn").addEventListener("click", async (e) => {
 
 // voice generation
 if (document.getElementById("voice-btn")) {
-  document.getElementById("voice-btn").addEventListener("click", async () => {
+  document.getElementById("voice-btn").addEventListener("click", async (e) => {
     const text = document.getElementById("voice-text").value;
+    const result = document.getElementById("voice-result");
 
-    const res = await fetch("/voice", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ text })
-    });
+    if (!text.trim()) {
+      showResult(result, "Введите текст для озвучки.", true);
+      return;
+    }
 
-    const blob = await res.blob();
+    setBusy(e.target, true);
 
-    const audio = document.getElementById("voice-player");
-    audio.src = URL.createObjectURL(blob);
+    try {
+      const blob = await callVoice(text);
+      const sizeKb = (blob.size / 1024).toFixed(1);
+
+      const audio = document.getElementById("voice-player");
+      audio.src = URL.createObjectURL(blob);
+
+      showResult(result, { message: "Голос успешно сгенерирован", sizeKb });
+    } catch (err) {
+      showResult(result, err.message, true);
+    } finally {
+      setBusy(e.target, false);
+    }
   });
 }
+
+document.getElementById("smoke-btn").addEventListener("click", async (e) => {
+  const result = document.getElementById("smoke-result");
+  setBusy(e.target, true);
+  showResult(result, "Запуск smoke-проверки...");
+
+  const checks = [];
+
+  async function runCheck(name, fn) {
+    try {
+      const data = await fn();
+      checks.push({ endpoint: name, status: "ok", data });
+    } catch (err) {
+      checks.push({ endpoint: name, status: "error", error: err.message });
+    }
+  }
+
+  try {
+    await runCheck("POST /reset", () => callJson("/reset", {}));
+    await runCheck("POST /chat", () => callJson("/chat", { message: "Привет!" }));
+    await runCheck("POST /summarize", () =>
+      callJson("/summarize", { pdfPath: "/tmp/not-found.pdf" })
+    );
+    await runCheck("POST /agents", () =>
+      callJson("/agents", { topic: "Будущее ИИ", turns: 1 })
+    );
+    await runCheck("POST /voice", async () => {
+      const blob = await callVoice("Hello from smoke test");
+      return { contentType: blob.type || "audio/mpeg", sizeBytes: blob.size };
+    });
+
+    showResult(result, {
+      note: "Проверка завершена. Некоторые методы могут вернуть error без внешних API-ключей или реального PDF — это нормально.",
+      checks,
+    });
+  } finally {
+    setBusy(e.target, false);
+  }
+});
 
 document.getElementById("reset-btn").addEventListener("click", async (e) => {
   const result = document.getElementById("reset-result");
