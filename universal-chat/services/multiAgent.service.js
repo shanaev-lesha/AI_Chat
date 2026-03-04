@@ -1,6 +1,23 @@
-import fetch from "node-fetch"; // если не установлен, npm install node-fetch
+import agentAPrompt from "../prompts/agentA.prompt.js";
+import agentBPrompt from "../prompts/agentB.prompt.js";
+import judgePrompt from "../prompts/judge.prompt.js";
+import improvePrompt from "../prompts/improve.prompt.js";
+
+const PROMPTS = {
+    agentA: agentAPrompt,
+    agentB: agentBPrompt,
+    judge: judgePrompt,
+    improve: improvePrompt
+};
+
+const cache = new Map();
 
 async function callLLM(messages) {
+    const key = JSON.stringify(messages);
+    if (cache.has(key)) {
+        return cache.get(key);
+    }
+
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -15,67 +32,90 @@ async function callLLM(messages) {
         })
     });
 
+    if (response.status === 429) {
+        throw new Error("LLM rate limit reached. Try later.");
+    }
+
     const data = await response.json();
     if (!response.ok) throw new Error(JSON.stringify(data));
 
-    return data.choices[0].message.content;
+    const result = data.choices[0].message.content;
+    cache.set(key, result);
+    return result;
 }
 
-export async function runMultiAgentConversation(topic, turns = 3) {
-    const conversation = [];
+async function runAgent(promptTemplate, topic, opponent = "") {
+    let prompt = promptTemplate.replace(/{topic}/g, topic);
 
-    let history = [
-        {
-            role: "system",
-            content: "This is a debate between two agents."
-        }
-    ];
-
-    let lastMessage = `Topic: ${topic}`;
-
-    for (let i = 0; i < turns; i++) {
-        // Agent A (аналитик)
-        const agentAReply = await callLLM([
-            ...history,
-            {
-                role: "system",
-                content: "You are Agent A. Be logical, structured, and defend your position concisely (max 250 words)."
-            },
-            { role: "user", content: lastMessage }
-        ]);
-
-        conversation.push({ agent: "Agent A", message: agentAReply });
-
-        history.push({ role: "assistant", content: agentAReply });
-
-        // Agent B (критик)
-        const agentBReply = await callLLM([
-            ...history,
-            {
-                role: "system",
-                content: "You are Agent B. Critically challenge Agent A. Focus on weak points. Be concise (max 250 words)."
-            },
-            { role: "user", content: agentAReply }
-        ]);
-
-        conversation.push({ agent: "Agent B", message: agentBReply });
-
-        history.push({ role: "assistant", content: agentBReply });
-
-        lastMessage = agentBReply;
+    if (typeof opponent === "object") {
+        prompt = prompt.replace(/{debate}/g, JSON.stringify(opponent));
+    } else {
+        prompt = prompt.replace(/{opponent}/g, opponent);
     }
 
-    // Финальный модератор
-    const conclusion = await callLLM([
-        {
-            role: "system",
-            content: "You are a neutral moderator. Summarize the debate and determine which arguments were stronger."
-        },
-        { role: "user", content: JSON.stringify(conversation) }
+    const userContent =
+        typeof opponent === "object"
+            ? JSON.stringify(opponent)
+            : opponent || topic;
+
+    return await callLLM([
+        { role: "system", content: prompt },
+        { role: "user", content: userContent }
     ]);
+}
+
+async function improveAgentPrompt(topic, prompt, judgeFeedback) {
+    const template = PROMPTS.improve;
+
+    const filled = template
+        .replace("{topic}", topic)
+        .replace("{prompt}", prompt)
+        .replace("{feedback}", judgeFeedback);
+
+    return await callLLM([
+        { role: "system", content: filled },
+        { role: "user", content: "Improve the agent prompt." }
+    ]);
+}
+
+export async function runSelfImprovingDebate(topic, rounds = 2) {
+    let promptA = PROMPTS.agentA;
+    let promptB = PROMPTS.agentB;
+
+    const history = [];
+
+    for (let i = 0; i < rounds; i++) {
+        const agentA = await runAgent(promptA, topic);
+        const agentB = await runAgent(promptB, topic, agentA);
+
+        const agentA_rebuttal = await runAgent(promptA, topic, agentB);
+        const agentB_rebuttal = await runAgent(promptB, topic, agentA_rebuttal);
+
+        const judge = await runAgent(PROMPTS.judge, topic, {
+            agentA,
+            agentB,
+            agentA_rebuttal,
+            agentB_rebuttal
+        });
+
+        history.push({
+            round: i + 1,
+            promptA,
+            promptB,
+            agentA,
+            agentB,
+            agentA_rebuttal,
+            agentB_rebuttal,
+            judge
+        });
+
+        // улучшение агентов
+        promptA = await improveAgentPrompt(topic, promptA, judge);
+        promptB = await improveAgentPrompt(topic, promptB, judge);
+    }
 
     return {
-        debate: conversation,
-        moderatorConclusion: conclusion
+        topic,
+        rounds: history
     };
 }
